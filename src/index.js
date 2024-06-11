@@ -4,13 +4,13 @@ addEventListener("fetch", (event) => {
 });
 
 const routes = {
-  "docker.mirrors.eastcoal.tech": "https://registry-1.docker.io",
-  "quay.mirrors.eastcoal.tech": "https://quay.io",
-  "gcr.mirrors.eastcoal.tech": "https://gcr.io",
-  "k8s-gcr.mirrors.eastcoal.tech": "https://k8s.gcr.io",
-  "k8s.mirrors.eastcoal.tech": "https://registry.k8s.io",
-  "ghcr.mirrors.eastcoal.tech": "https://ghcr.io",
-  "cloudsmith.mirrors.eastcoal.tech": "https://docker.cloudsmith.io",
+  "docker.eastcoal.tech": "https://registry-1.docker.io",
+  "quay.eastcoal.tech": "https://quay.io",
+  "gcr.eastcoal.tech": "https://gcr.io",
+  "k8s-gcr.eastcoal.tech": "https://k8s.gcr.io",
+  "k8s.eastcoal.tech": "https://registry.k8s.io",
+  "ghcr.eastcoal.tech": "https://ghcr.io",
+  "cloudsmith.eastcoal.tech": "https://docker.cloudsmith.io",
 };
 
 function routeByHosts(host) {
