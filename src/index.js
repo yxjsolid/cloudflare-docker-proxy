@@ -89,7 +89,9 @@ async function handleRequest(request) {
     headers: request.headers,
     redirect: "follow",
   });
-  return await fetch(newReq);
+  const res = await fetch(newReq);
+  console.log(newUrl, res);
+  return res;
 }
 
 function parseAuthenticate(authenticateStr) {
