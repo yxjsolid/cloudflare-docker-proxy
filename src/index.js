@@ -90,7 +90,7 @@ async function handleRequest(request) {
     redirect: "follow",
   });
   const res = await fetch(newReq);
-  console.log(newUrl, res);
+  console.log(newUrl, JSON.stringify(res));
   return res;
 }
 
