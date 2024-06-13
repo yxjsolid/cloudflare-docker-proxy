@@ -36,20 +36,24 @@ async function handleRequest(request) {
       }
     );
   }
-  // check if need to authenticate
+  const authorization = request.headers.get("Authorization");
   if (url.pathname == "/v2/") {
     const newUrl = new URL(upstream + "/v2/");
+    const headers = new Headers();
+    if (authorization) {
+      headers.set("Authorization", authorization);
+    }
+    // check if need to authenticate
     const resp = await fetch(newUrl.toString(), {
       method: "GET",
+      headers: headers,
       redirect: "follow",
     });
-    if (resp.status === 200) {
-    } else if (resp.status === 401) {
-      const headers = new Headers();
+    if (resp.status === 401) {
       if (MODE == "debug") {
         headers.set(
           "Www-Authenticate",
-          `Bearer realm="${LOCAL_ADDRESS}/v2/auth",service="cloudflare-docker-proxy"`
+          `Bearer realm="http://${url.host}/v2/auth",service="cloudflare-docker-proxy"`
         );
       } else {
         headers.set(
@@ -80,7 +84,7 @@ async function handleRequest(request) {
       return resp;
     }
     const wwwAuthenticate = parseAuthenticate(authenticateStr);
-    return await fetchToken(wwwAuthenticate, url.searchParams);
+    return await fetchToken(wwwAuthenticate, url.searchParams, authorization);
   }
   // foward requests
   const newUrl = new URL(upstream + url.pathname);
@@ -106,7 +110,7 @@ function parseAuthenticate(authenticateStr) {
   };
 }
 
-async function fetchToken(wwwAuthenticate, searchParams) {
+async function fetchToken(wwwAuthenticate, searchParams, authorization) {
   const url = new URL(wwwAuthenticate.realm);
   if (wwwAuthenticate.service.length) {
     url.searchParams.set("service", wwwAuthenticate.service);
@@ -114,5 +118,9 @@ async function fetchToken(wwwAuthenticate, searchParams) {
   if (searchParams.get("scope")) {
     url.searchParams.set("scope", searchParams.get("scope"));
   }
-  return await fetch(url, { method: "GET", headers: {} });
+  headers = new Headers();
+  if (authorization) {
+    headers.set("Authorization", authorization);
+  }
+  return await fetch(url, { method: "GET", headers: headers });
 }
