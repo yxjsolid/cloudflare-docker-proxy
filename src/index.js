@@ -3,10 +3,10 @@ addEventListener("fetch", (event) => {
   event.respondWith(handleRequest(event.request));
 });
 
-const dockerHub = "https://registry-1.docker.io";
+const DOCKER_HUB = "https://registry-1.docker.io";
 
 const routes = {
-  "docker.eastcoal.tech": dockerHub,
+  "docker.eastcoal.tech": DOCKER_HUB,
   "quay.eastcoal.tech": "https://quay.io",
   "gcr.eastcoal.tech": "https://gcr.io",
   "k8s-gcr.eastcoal.tech": "https://k8s.gcr.io",
@@ -20,6 +20,8 @@ async function handleRequest(request) {
   return handler.start()
 }
 
+
+const AUTHORIZE_PATH = "/v2/auth";
 
 class RequestHandler {
   request;
@@ -35,10 +37,15 @@ class RequestHandler {
   }
 
   get isDockerHub() {
-    this.upstream === dockerHub;
+    this.upstream === DOCKER_HUB;
   }
 
   start() {
+
+    if (this.url.pathname === AUTHORIZE_PATH) {
+      return this.authorize()
+    }
+
     // 处理默认的 library 命名空间
     // Example: /v2/busybox/manifests/latest => /v2/library/busybox/manifests/latest
     if (this.isDockerHub) {
@@ -62,20 +69,40 @@ class RequestHandler {
       redirect: "follow",
     });
     const resp = await fetch(newReq);
-    // 只处理 GET 请求，绕过 push 等场景
-    if (resp.status === 401 && this.request.method.toUpperCase() === "GET") {
-      const wwwAuthenticate = parseAuthenticate(resp.headers.get("Www-Authenticate"));
-      const authorization = this.request.headers.get("Authorization");
-      const scope = this.url.searchParams.get("scope");
-      // autocomplete repo part into scope for DockerHub library images
-      // Example: repository:busybox:pull => repository:library/busybox:pull
-      const authResp = await fetchToken(wwwAuthenticate, scope, authorization);
-      if (authResp.status === 200) {
-        newReq.headers.set("Authorization", authResp.headers.get("Authorization"));
-        return await fetch(newReq);
-      }
+    if (resp.status === 401
+    ) {
+      const newResp = new Response(resp.body, resp);
+      newResp.headers.set(
+        "Www-Authenticate",
+        `Bearer realm="${this.url.protocol}//${this.url.host}${AUTHORIZE_PATH}",service="cloudflare-docker-proxy"`
+      );
+      return newResp;
     }
     return resp;
+  }
+
+  async authorize() {
+    const authorization = this.request.headers.get("Authorization");
+    const newUrl = new URL(this.upstream + "/v2/");
+    const resp = await fetch(newUrl, {
+      method: "GET",
+      redirect: "follow",
+      headers: {
+        Authorization: authorization
+      }
+    });
+    if (resp.status !== 401) {
+      return resp;
+    }
+    const authenticateStr = resp.headers.get("WWW-Authenticate");
+    if (authenticateStr === null) {
+      return resp;
+    }
+    const wwwAuthenticate = parseAuthenticate(authenticateStr);
+    const scope = this.url.searchParams.get("scope");
+    // autocomplete repo part into scope for DockerHub library images
+    // Example: repository:busybox:pull => repository:library/busybox:pull
+    return fetchToken(wwwAuthenticate, scope, authorization);
   }
 }
 
@@ -103,6 +130,7 @@ function parseAuthenticate(authenticateStr) {
     service: matches[1],
   };
 }
+
 
 async function fetchToken(wwwAuthenticate, scope, authorization) {
   const url = new URL(wwwAuthenticate.realm);
