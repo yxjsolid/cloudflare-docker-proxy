@@ -20,7 +20,6 @@ async function handleRequest(request) {
   return handler.start()
 }
 
-
 const AUTHORIZE_PATH = "/v2/auth";
 
 class RequestHandler {
@@ -41,11 +40,9 @@ class RequestHandler {
   }
 
   start() {
-
     if (this.url.pathname === AUTHORIZE_PATH) {
       return this.authorize()
     }
-
     // 处理默认的 library 命名空间
     // Example: /v2/busybox/manifests/latest => /v2/library/busybox/manifests/latest
     if (this.isDockerHub) {
@@ -69,8 +66,7 @@ class RequestHandler {
       redirect: "follow",
     });
     const resp = await fetch(newReq);
-    if (resp.status === 401
-    ) {
+    if (resp.status === 401) {
       const newResp = new Response(resp.body, resp);
       newResp.headers.set(
         "Www-Authenticate",
@@ -106,7 +102,6 @@ class RequestHandler {
   }
 }
 
-
 function getUpstream(host) {
   if (host in routes) {
     return routes[host];
@@ -130,7 +125,6 @@ function parseAuthenticate(authenticateStr) {
     service: matches[1],
   };
 }
-
 
 async function fetchToken(wwwAuthenticate, scope, authorization) {
   const url = new URL(wwwAuthenticate.realm);
