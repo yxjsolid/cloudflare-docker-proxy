@@ -6,13 +6,13 @@ addEventListener("fetch", (event) => {
 const DOCKER_HUB = "https://registry-1.docker.io";
 
 const routes = {
-  "docker.eastcoal.tech": DOCKER_HUB,
-  "quay.eastcoal.tech": "https://quay.io",
-  "gcr.eastcoal.tech": "https://gcr.io",
-  "k8s-gcr.eastcoal.tech": "https://k8s.gcr.io",
-  "k8s.eastcoal.tech": "https://registry.k8s.io",
-  "ghcr.eastcoal.tech": "https://ghcr.io",
-  "cloudsmith.eastcoal.tech": "https://docker.cloudsmith.io",
+  "docker.letscloud.net": DOCKER_HUB,
+  // "quay.eastcoal.tech": "https://quay.io",
+  // "gcr.eastcoal.tech": "https://gcr.io",
+  // "k8s-gcr.eastcoal.tech": "https://k8s.gcr.io",
+  // "k8s.eastcoal.tech": "https://registry.k8s.io",
+  // "ghcr.eastcoal.tech": "https://ghcr.io",
+  // "cloudsmith.eastcoal.tech": "https://docker.cloudsmith.io",
 };
 
 async function handleRequest(request) {
